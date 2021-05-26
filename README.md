@@ -9,3 +9,5 @@ and follows the [official tutorial by reactjs.org](https://reactjs.org/tutorial/
 
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+
+[Video of the game](./tictactoevideo.mov)
