@@ -15,18 +15,29 @@ class Board extends React.Component {
     super(props)
 
     this.state = {
-      squareVals: Array(9).fill(null)
+      squareVals: Array(9).fill(null),
+      isXTurnNext: true
     }
   }
 
   handleClick(i) {
     const squareVals = this.state.squareVals.slice();
-    if (squareVals[i] === "X") {
-      squareVals[i] = "O";
-    } else {
-      squareVals[i] = "X";
+    const winner = calculateWinner(this.state.squareVals)
+    // Don't do anything is a winner is already set
+    if (winner) {
+      return
     }
-    this.setState({ squareVals: squareVals });
+
+    // Don't do anything if there is already a value in the square
+    if (squareVals[i]) {
+      return
+    }
+
+    squareVals[i] = this.state.isXTurnNext ? "X" : "O";
+    this.setState({ 
+      squareVals: squareVals,
+      isXTurnNext: !this.state.isXTurnNext
+    });
   }
 
   renderSquare(i) {
@@ -39,7 +50,14 @@ class Board extends React.Component {
   }
 
   render() {
-    const status = 'Next player: X';
+    // Display the winner or next turn accordingly
+    const winner = calculateWinner(this.state.squareVals)
+    let status
+    if (winner) {
+      status = "Winner is " + (winner)
+    } else {
+      status = 'Next player: ' + (this.state.isXTurnNext ? "X" : "O");
+    }
 
     return (
       <div>
@@ -87,3 +105,22 @@ ReactDOM.render(
   document.getElementById('root')
 );
 
+function calculateWinner(squares) {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return squares[a];
+    }
+  }
+  return null;
+}
