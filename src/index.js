@@ -4,64 +4,26 @@ import './index.css';
 
 function Square(props) {
   return (
-      <button className="square" onClick={props.onClick}>
-        {props.value}
-      </button>
+    <button className="square" onClick={props.onClick}>
+      {props.value}
+    </button>
   );
 }
 
 class Board extends React.Component {
-  constructor(props) {
-    super(props)
-
-    this.state = {
-      squareVals: Array(9).fill(null),
-      isXTurnNext: true
-    }
-  }
-
-  handleClick(i) {
-    const squareVals = this.state.squareVals.slice();
-    const winner = calculateWinner(this.state.squareVals)
-    // Don't do anything is a winner is already set
-    if (winner) {
-      return
-    }
-
-    // Don't do anything if there is already a value in the square
-    if (squareVals[i]) {
-      return
-    }
-
-    squareVals[i] = this.state.isXTurnNext ? "X" : "O";
-    this.setState({ 
-      squareVals: squareVals,
-      isXTurnNext: !this.state.isXTurnNext
-    });
-  }
-
   renderSquare(i) {
     return (
       <Square
-        value={this.state.squareVals[i]}
-        onClick={() => this.handleClick(i)}
+        value={this.props.squareVals[i]}
+        onClick={() => this.props.onClick(i)}
       />
     );
   }
 
   render() {
-    // Display the winner or next turn accordingly
-    const winner = calculateWinner(this.state.squareVals)
-    let status
-    if (winner) {
-      status = "Winner is " + (winner)
-    } else {
-      status = 'Next player: ' + (this.state.isXTurnNext ? "X" : "O");
-    }
 
     return (
       <div>
-        <div className="status">{status}</div>
         <div className="board-row">
           {this.renderSquare(0)}
           {this.renderSquare(1)}
@@ -83,18 +45,90 @@ class Board extends React.Component {
 }
 
 class Game extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      boards: [{
+        squareVals: Array(9).fill(null)
+      }],
+      isXTurnNext: true,
+      viewingStep: 0
+    }
+  }
+
+  jumpTo(move) {
+    this.setState(
+      {
+        squareVals: this.state.squareVals,
+        isXTurnNext: (move % 2) === 0,
+        viewingStep: move
+      }
+    )
+  }
+
   render() {
+    const boards = this.state.boards;
+    const currentBoard = boards[this.state.viewingStep];
+    // Display the winner or next turn accordingly
+    const winner = calculateWinner(currentBoard.squareVals)
+
+    const moves = boards.map((step, move) => {
+      const desc = move ?
+        "Go to move #" + move :
+        "Go to game start";
+
+      return (
+        <li key={move}>
+          <button onClick={() => this.jumpTo(move)}>{desc}</button>
+        </li>
+      )
+    });
+    let status
+    if (winner) {
+      status = "Winner is " + (winner)
+    } else {
+      status = 'Next player: ' + (this.props.isXTurnNext ? "X" : "O");
+    }
+
     return (
       <div className="game">
         <div className="game-board">
-          <Board />
+          <Board
+            squareVals={currentBoard.squareVals}
+            onClick={(i) => this.handleClick(i)}
+          />
         </div>
         <div className="game-info">
-          <div>{/* status */}</div>
-          <ol>{/* TODO */}</ol>
+          <div className="status">{status}</div>
+          <ol>{moves}</ol>
         </div>
       </div>
     );
+  }
+
+  handleClick(i) {
+    const boards = this.state.boards.slice(0, this.state.viewingStep + 1);
+    const currentBoard = boards[boards.length - 1];
+    const squareVals = currentBoard.squareVals.slice();
+    const winner = calculateWinner(squareVals)
+    // Don't do anything is a winner is already set
+    if (winner) {
+      return
+    }
+
+    // Don't do anything if there is already a value in the square
+    if (squareVals[i]) {
+      return
+    }
+
+    squareVals[i] = this.state.isXTurnNext ? "X" : "O";
+    this.setState({
+      boards: boards.concat([{
+        squareVals: squareVals
+      }]),
+      isXTurnNext: !this.state.isXTurnNext,
+      viewingStep: boards.length
+    });
   }
 }
 
